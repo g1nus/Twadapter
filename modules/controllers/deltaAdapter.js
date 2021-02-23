@@ -138,8 +138,6 @@ const userInsights = async function (id) {
       return acc + cv.tweetCounts;
     }, 0);
 
-    console.log('tweet per day -> ' + data.dailyAverageTweets);
-
     data.dailyAverageTweets = Math.ceil(data.dailyAverageTweets / 24);
 
     data.dateLikesPeak = data.dateActivity.reduce((acc, cv) => {
@@ -205,12 +203,14 @@ const streamData = async function (userId, streamId) {
     data.streamEvents.gameTunits = data.dur_game.map((game, idx) => {
       let start = (idx > 0) ? data.dur_game[idx-1].end.replace(' ', 'T').substring(0,23) + 'Z' : data.stream.startedAt;
       let end = game.end.replace(' ', 'T').substring(0,23) + 'Z';
+      let msTunitLength = new Date(end).getTime() - new Date(start).getTime();
 
       return {
         gameName: game.gameName,
         start,
         end,
-        msTunitLength: new Date(end).getTime() - new Date(start).getTime()
+        msTunitLength,
+        tunitLength: parseMilliseconds(msTunitLength)
       }
     })
     data.streamEvents.chatTunits = data.streamEvents.chatTunits.map((chatTunit, idx) => {
