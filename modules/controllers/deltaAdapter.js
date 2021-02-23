@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const axios = require('axios');
 
-const {getSleepArray, expandDaylyAvergeArray, mergeDailyActivities, mergeDateActivities} = require('@controllers/deltaUtils');
+const {mergeDailyActivitiesWithSleep, expandDaylyAvergeArray, mergeDailyActivities, mergeDateActivities, parseMilliseconds, studySleepPatterns} = require('@controllers/deltaUtils');
 
 const search = async function (query) {
 
@@ -93,21 +93,24 @@ const userInsights = async function (id) {
     const resp = await axios.get(`${process.env.API_ENDPOINT}/${id}/insights`);
     let data = resp.data;
 
-    let sleepArray = getSleepArray(data.sleep);
-
     let streamStarts = expandDaylyAvergeArray(data.start_stream, 'startedAt', 'counts', 'streamStarts');
 
     let streamViewers = expandDaylyAvergeArray(data.hour, 'hour', 'viewers', 'viewers');
 
     let tweetSubmissions = expandDaylyAvergeArray(data.count_hour, 'hour', 'counts', 'tweetSubmissions');
 
-    let dailyActivity = mergeDailyActivities(streamStarts, streamViewers, tweetSubmissions, sleepArray);
+    console.log('tweet submissions', tweetSubmissions);
+
+    let dailyActivity = mergeDailyActivities(streamStarts, streamViewers, tweetSubmissions);
 
     let dateActivity = mergeDateActivities(data.date, data.like, data.count_date, data.words_twitch);
 
+    let newSleepData = studySleepPatterns(dailyActivity);
+
+    dailyActivity = mergeDailyActivitiesWithSleep(dailyActivity, newSleepData);
+
     data.start_stream = undefined;
     data.hour = undefined;
-    data.sleep = undefined;
     data.count_hour = undefined;
     data.dailyActivity = dailyActivity;
 
@@ -119,6 +122,43 @@ const userInsights = async function (id) {
 
     data.twitterFrequentWords = data.frequent_words_tweet;
     data.frequent_words_tweet = undefined;
+
+    data.favoriteGames = data.favourite_games;
+    data.favourite_games = undefined;
+
+    data.dailyViewsPeak = Math.max(...data.dailyActivity.map((hour) => hour.streamViewers))
+    data.dailyTweetPeak = Math.max(...data.dailyActivity.map((hour) => hour.tweetCounts))
+
+    data.dailyAverageViewers = data.dailyActivity.reduce((acc, cv) => {
+      return acc + cv.streamViewers;
+    }, 0);
+    data.dailyAverageViewers = Math.ceil(data.dailyAverageViewers / 24);
+
+    data.dailyAverageTweets = data.dailyActivity.reduce((acc, cv) => {
+      return acc + cv.tweetCounts;
+    }, 0);
+
+    console.log('tweet per day -> ' + data.dailyAverageTweets);
+
+    data.dailyAverageTweets = Math.ceil(data.dailyAverageTweets / 24);
+
+    data.dateLikesPeak = data.dateActivity.reduce((acc, cv) => {
+      return (acc.likes < cv.likes) ? {date: cv.date, likes: cv.likes} : acc;
+    }, {date: undefined, likes: 0})
+    data.dateViewersPeak = data.dateActivity.reduce((acc, cv) => {
+      return (acc.viewers < cv.viewers) ? {date: cv.date, viewers: cv.viewers} : acc;
+    }, {date: undefined, viewers: 0})
+
+    data.maxStreamStarts = data.dailyActivity.reduce((acc, cv) => {
+      return (acc.streamStarts < cv.streamStarts) ? {hour: cv.hour, streamStarts: cv.streamStarts} : acc;
+    }, {hour: 0, streamStarts: 0})
+
+    if((data.dailyAverageViewers * 0.25) > data.dailyAverageTweets){
+      data.dailyActivity = data.dailyActivity.map((day) => ({...day, enhancedTweetActivity: Math.ceil(day.tweetCounts * (data.dailyAverageViewers/data.dailyAverageTweets*0.2))}))
+    }
+
+    data.sleep = newSleepData;
+
 
     return data;
   }catch (err){
@@ -154,6 +194,8 @@ const streamData = async function (userId, streamId) {
       return {...tunit, newFollowers, msTimeStamp: new Date(tunit.createdAt).getTime()}
     })
 
+    data.stream.msDuration = new Date(data.stream.tunits[data.stream.tunits.length-1].createdAt).getTime() - new Date(data.stream.startedAt).getTime()
+    data.stream.duration = parseMilliseconds(data.stream.msDuration);
     data.stream.averageViewers = data.average_viewers;
     data.stream.totalNewFollowers = data.stream.tunits[data.stream.tunits.length-1].followers - data.stream.tunits[0].followers;
 
@@ -182,6 +224,13 @@ const streamData = async function (userId, streamId) {
       }
       return {...chatTunit, msTimeStamp, msTunitLenght};
     });
+
+    data.streamEvents.raids = data.streamEvents.raids.map((raid, idx) => {
+      let msTimeStamp = new Date(raid.createdAt).getTime();
+
+      return {...raid, msTimeStamp};
+    });
+
     data.streamEvents.subPerHour = data.sub_hour;
     data.streamEvents.totalSubs = data.total_sub;
     data.streamEvents.meanMonthlySub = data.mean_month_sub;
