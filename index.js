@@ -114,8 +114,8 @@ router.post('/favorites', async (req, res, next) => {
 
 router.post('/monitor', async (req, res, next) => {
   try{
-    let resp = await deltaAdapt.startMonitoring(req.body.twitterId, req.body.twitchId);
-    res.json({msg: "done"});
+    let resp = await deltaAdapt.startMonitoring(req.body.twitterId, req.body.twitchId, req.body.twitchName);
+    res.json(resp);
 
   }catch (err){
     err.name = 400;

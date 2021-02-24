@@ -20,21 +20,41 @@ const search = async function (query) {
       data.monitored = await Promise.all(data.monitored.map(async (person) => {
         try {
           const info = await axios.get(`${process.env.API_ENDPOINT}/${person.id_twitter}/info`)
-          return {
-            twitchInfo: {
-              displayName: info.data.twitch_info.displayName,
-              loginName: info.data.twitch_info.loginName,
-              followers: info.data.twitch_info.followers,
-              description: info.data.twitch_info.description,
-              profilePicture: info.data.twitch_info.profilePicture
-            },
-            twitterInfo: {
-              loginName: info.data.twitter_info.screen_name,
-              description: info.data.twitter_info.description,
-              followers: info.data.twitter_info.followers_count,
-              verified: info.data.twitter_info.verified
-            }
-          };
+          if((info.data.twitch_info.streams && info.data.twitch_info.streams.length > 2)){
+            return {
+              twitchInfo: {
+                displayName: info.data.twitch_info.displayName,
+                loginName: info.data.twitch_info.loginName,
+                followers: info.data.twitch_info.followers,
+                description: info.data.twitch_info.description,
+                profilePicture: info.data.twitch_info.profilePicture
+              },
+              twitterInfo: {
+                loginName: info.data.twitter_info.screen_name,
+                description: info.data.twitter_info.description,
+                followers: info.data.twitter_info.followers_count,
+                verified: info.data.twitter_info.verified
+              },
+              monitored: true
+            };
+          }else{
+            return {
+              twitchInfo: {
+                displayName: `"-[${query}]-"`,
+                loginName: `"-[${query}-]"`,
+                followers: 0,
+                description: "__",
+                profilePicture: "https://visualpharm.com/assets/873/Nothing%20Found-595b40b65ba036ed117d20ae.svg"
+              },
+              twitterInfo: {
+                loginName: `"-[${query}]-"`,
+                description: "__",
+                followers: 0,
+                verified: "__"
+              },
+              monitored: false
+            };
+          }
         } catch (error) {
           throw error
         }
@@ -43,6 +63,22 @@ const search = async function (query) {
 
     data.twitchResults = data.twitch_results.results;
     data.twitch_results = undefined;
+
+    data.twitter_results = data.twitter_results.map((twitterUser) => {
+      let oldUrl = twitterUser.profile_image;
+      let newUrl = '';
+      console.log(twitterUser.profile_image);
+      if(oldUrl.indexOf('default_profile_normal.png') >= 0){
+        newUrl = 'https://' + oldUrl.substring(7, oldUrl.length);
+      }else{
+        let extIndex = oldUrl.length - twitterUser.profile_image.split('').reverse().indexOf('.') - 1
+        let normalIndex = oldUrl.indexOf('_normal.');
+        newUrl = oldUrl.substring(0, normalIndex) + oldUrl.substring(extIndex, oldUrl.length);
+      }
+      console.log('--\n', newUrl);
+
+      return {...twitterUser, profile_image: newUrl}
+    })
 
     return data;
 
@@ -297,8 +333,8 @@ const getTrendingStreamers = async function () {
         throw error
       }
     }));
- 
-    return results;
+
+    return results.filter((res) => res.twitchInfo.displayName !== undefined);
 
   }catch (err){
     console.log(err);
@@ -375,16 +411,16 @@ const postFavorites = async function (googleToken, twitterId, twitchId) {
   
 }
 
-const startmonitoring = async function (twitterId, twitchId) {
+const startMonitoring = async function (twitterId, twitchId, twitchName) {
 
-  if(!twitchId || !twitterId){
+  if(!twitchId || !twitterId || !twitchName){
     let err = new Error(`the fields are not properly defined`);
     err.name = 404;
     throw err; 
   }
 
   try{
-    const resp = await axios.get(`${process.env.API_ENDPOINT}/startmonitoring?id_twitter=${twitterId}&id_twitch=${twitchId}`);
+    const resp = await axios.get(`${process.env.API_ENDPOINT}/startmonitoring?id_twitter=${twitterId}&id_twitch=${twitchId}&twitch_name=${twitchName}`);
     let data = resp.data;
 
     return data;
@@ -404,4 +440,4 @@ exports.streamData = streamData;
 exports.getTrendingStreamers = getTrendingStreamers;
 exports.getFavorites = getFavorites;
 exports.postFavorites = postFavorites;
-exports.startmonitoring = startmonitoring;
+exports.startMonitoring = startMonitoring;
