@@ -1,0 +1,402 @@
+FORMAT: 1A
+HOST: https://epsilon.mangolytica.tk/
+
+# delta-mangolytica
+
+REST API for obtaining data about the performance of streamers on the Twitch and Twitter platform
+
+## Search a streamer on Twitch  [/search?query={query}]
+Search for a name on Twitch, Twitter and our platform
+
++ Parameters
+    + query (string, required) - the name of the streamer you're looking for
+
+
+### List search results [GET]
+The response will return a list of Twitch search results, Twitter search results and monitored users on our platform
+
++ Response 200 (application/json)
+    + Attributes (SearchResponse)
+
+## Fetch trending streamers [/trending]
+Retrieve a list of trending streamers
+
+### List trending streamers [GET]
+The response will contain a list of the trending streamers' basic info
+
++ Response 200 (application/json)
+    + Attributes (TrendingStreamers)
+
+
+## Retrieve Monitored Streamer [/users/{screen_name}]
+Get basic information about the monitored streamer
+
++ Parameters
+    + screen_name (string, required) - unique screen name of the user on Twitter
+
+### List monitored streamer data [GET]
+The response will contain basic info and the list of past streams and tweets
+
++ Response 200 (application/json)
+    + Attributes (UserInfo)
+
+
+## Get Insights [/users/{screen_name}/insights]
+Get more details about a streamer activity on Twitch and Twitter
+
++ Parameters
+    + screen_name (string, required) - unique screen name of the user on Twitter
+
+### List monitored streamers data [GET]
+The response will contain many different stats regarding the streamers' usage of Twitch and Twitter
+
++ Response 200 (application/json)
+    + Attributes (UserInsights)
+
+## Get Stream Details [/users/{screen_name}/streams/{stream_id}]
+Get details about the activity during a particular stream
+
++ Parameters
+    + screen_name (string, required) - unique screen name of the user on Twitter
+    + stream_id (string, required) - unique ID of the stream on Twitch
+
+### Display stream activity [GET]
+The response will contain details about the activity on Twitch and Twitter during a stream
+
++ Response 200 (application/json)
+    + Attributes (StreamAnalysis)
+
+## Manage favorite streamers [/favorites?g_token={google_token}]
+Manage the favorite streamers of a Google user
+
++ Parameters
+    + google_token (string, optional) - google auth token (required for GET)
+
+### List favorite streamers [GET]
+The response will contain a list of the favorite streamers' basic info
+
++ Response 200 (application/json)
+    + Attributes (TrendingStreamers)
+
+### Toggle favorite streamer [POST]
+Calling this endpoint will toggle the favorite flag of a specific streamer for a Google user
+
++ Request (application/json)
+    + Attributes(PostNewFavouriteStreamer)
+
++ Response 201 (application/json)
+
+## Start monitoring a new streamer [/monitor]
+Associate a Twitch account with a Twitter account and start monitoring them
+
+### Submit new monitoring data [POST]
+Calling this endpoint in order to start monitoring a new streamer activity on Twitch and Twitter
+
++ Request (application/json)
+    + Attributes(PostNewMonitoredStreamer)
+
++ Response 201 (application/json)
+    + Attributes(PostMonitoredResponseSuccess1)
+
+
+
+
+# Data Structures
+
+## SearchResponse (object)
++ monitored (array[MonitoredSearchResults])
++ twitter_results (array[TwitterInfoMonitoredSearchResult])
++ twitchResults (array[TwitchResult])
+
+## TrendingStreamers (object)
++ data (array[TrendingStreamer])
+
+## TrendingStreamer (object)
++ twitchInfo (TwitchInfoMonitoredSearchResult)
++ twitterInfo (TwitterResult)
+
+## MonitoredSearchResults (object)
++ twitchInfo (TwitchInfoMonitoredSearchResult)
++ twitterInfo (TwitterInfoMonitoredSearchResult)
+
+## TwitchInfoMonitoredSearchResult (object)
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his page
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
+
+## TwitterInfoMonitoredSearchResult (object)
++ user_screen: tfblade (string) - name of the user on twitter (unique)
++ user_name: TFblade (string) - public name
++ description: Hi. I like to tweet! (string) - short bio of the twitter user
++ followers_count: 110878 (number) - number of followers on twitter
++ verified: true (boolean) - true if the user is verified by twitter
++ profile_image: http//url/to/pic (string) - profile picture of the streamer
+
+
+## TwitterResult (object)
++ loginName: tfblade (string) - name of the user on twitter
++ description: Hi. I like to tweet! (string) - short bio of the twitter user
++ followers: 110878 (number) - number of followers on twitter
++ verified: true (boolean) - true if the user is verified by twitter
+
+
+## TwitchResult (object)
++ streamerId: 59308271 (string) - Twitch id of the streamer
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his page
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ broadcasterLanguage: en (string) - the language of the broadcaster
++ isLive: true (boolean) - boolean flag telling if streamer is currently live, if this is true, you'll have access to the stream sub-object
+
+
+
+## UserInfo (object)
++ twitter_info (TwitterUserInfo)
++ twitchInfo (TwitchUserInfo)
+
+
+## TwitterUserInfo (object)
++ screen_name: scarra (string) - name of the user on twitter (unique)
++ user_name: Scarra (string) - public name
++ description: player/coach Streamed everyday of 2019 (string) - short bio of the twitter user
++ followers_count: 776072 (number) - number of twitter followers 
++ friends_count: 654 (number) - number of twitter friends
++ location: California (string) - declared location of the user
++ profile_location: null (string)
++ verified: true (string) - true if the user is verified by twitter
++ profile_image: http//url/to/pic (string) - twitter profile image
++ tweets (array[TweetData])
+
+
+## TwitchUserInfo (object)
++ streamerId: 59308271 (string) - Twitch id of the streamer
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his Twitch page
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ broadcasterLanguage: en (string) - the language of the broadcaster
++ streams (array[BasicMonitoredStream])
+
+## UserInsights (object)
++ score: 4025 (number) - score of the user (based on his/her Twitch and Twitter activity)
++ dailyViewsPeak: 8193 (number) - maximum number of viewers per day
++ dailyTweetPeak: 28 (number) - maximum number of tweets in one hour
++ dailyAverageViewers: 3061 (number) - average number of viewers over 24hr
++ dailyAverageTweets: 9 (number) - average number of tweets per hour
++ dailyActivity (array[HourActivtyInsight])
++ dateActivity (array[DayActivtyInsight])
++ sleep (SleepInsight)
++ twitterFrequentWords: `tweet,hi` (array) - frequently used twitter words
++ favoriteGames (array[FavoriteGame])
++ dateLikesPeak (DateLikesPeakInsight)
++ dateViewersPeak (DateViewersPeakInsight)
++ maxStreamStarts (MaxStreamStartsInsight)
+
+## MaxStreamStartsInsight (object)
++ hour: 3 (number) - most common stream starting hour
++ streamStarts: 3 (number) - number of streams started in that hour
+
+## DateViewersPeakInsight (object)
++ date: 20210216 (string) - day with the highest number of viewers
++ viewers: 7003 (number) - the highest number of average daily viewers registered
+
+## DateLikesPeakInsight (object)
++ date: 20210216 (string) - day with the highest number of likes
++ likes: 10001 (number) - the highest number of likes on twitter registered
+
+## FavoriteGame (object)
++ gameName: Valorant (string) - name of the game
++ counts: 10 (number) - number of times the game was played
+
+## SleepInsight (object)
++ start: 13:00:00 (string) - sleep start UTC hour
++ end: 19:00:00 (string) - sleep end UTC hour
++ totalSleep: 7 (number) - total sleeping hours
+
+## HourActivtyInsight (object)
++ hour: 0 (number) - UTC hour
++ streamStarts: 2 (number) - number of streams started at the specified hour
++ streamViewers: 2456 (number) - average stream viewers at the specified hour
++ tweetCounts: 28 (number) - average tweet counts at the specified hour
++ sleeping: false (boolean) - true if the user sleeps at the specified hour
++ enhancedTweetActivity: 1905 (number) - enhanced tweet activity at the specified hour (useful for making charts
+
+## DayActivtyInsight (object)
++ date: 20210211 (string) - UTC date
++ viewers: 5123 (number) - average number of viewers at the specified date
++ likes: 8342 (number) - total number of likes at the specified date
++ retweets: 120 (number) - total number of retweets at the specified date
++ tweets: 4 (number) - total number of tweets at the specified date
++ twitchMention: true (boolean) - true if the user tweets something relative to twitch at the specified date
+
+
+
+## StreamAnalysis (object)
++ score: 4025 (number) - score of the stream (based on his/her Twitch and Twitter activity during the stream)
++ stream (BasicMonitoredStreamWithTunits)
++ gameWithTitle (GameWithTitle)
++ averageViewersPerGame (ViewersPerGame)
++ streamEvents (StreamEvents)
++ twitterData (TwitterData)
+
+## ViewersPerGame (object)
++ gameName: Teamfight Tactics (string) - name of the game
++ viewers: 5189 (number) - average viewers of the gamee during the stream
+
+## GameWithTitle (object)
++ gameName: Teamfight Tactics (string) - name of the game
++ title: 1 erbs game (string) - title
+
+## TwitterData (object)
++ tweetBefore (array[TweetData]) - tweets published before the stream
++ tweetDuring (array[TweetData]) - tweets published during the stream
++ tweetAfter (array[TweetData]) - tweets published after the stream
+
+
+## StreamEvents (object)
++ totalSubs: 49 (number) - total number of new subscribers
++ meanMonthlySub: 14 (number) - average months of subscriptions
++ frequentWordsSub: `stream,hi` (array) - frequently used words for subscription messages
++ subPerHour (array[SubInHour])
++ chatTunits (array[ChatTunit])
++ gameTunits (array[GameTunit])
++ raids (array[Raid])
+
+
+## SubInHour (object)
++ hour: 1:00:00 (string) - hour of the stream
++ sub: 7 (number) - number fo subs during the hour
+
+## TweetData (object)
++ date: 20210224T11:45:55 (string) - UTC date of the tweet submission
++ text: U w U (string) - tweet text
++ retweet_count: 548 (number) - number of retweets of the tweet
++ like: 29699 (number) - number of likes of the tweet
+
+
+## SearchData (object)
++ streamerId: 59308271 (string) - Twitch id of the streamer
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his page
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ broadcasterLanguage: en (string) - the language of the broadcaster
++ isLive: true (boolean) - boolean flag telling if streamer is currently live, if this is true, you'll have access to the stream sub-object
++ stream (ActiveStreamSearchData)
+
+## ActiveStreamSearchData (object)
++ gameId: 21779 (string) - Twitch id of the game
++ title: Ranking League of Legends (string) - title of the current stream \(or most recent one\)
++ startedAt: 20210209T13:05:24Z' (string) - UTC date of the start of the stream \(if the stream is currently live\)
+
+
+
+## MonitoredStreamers (object)
++ results (array[MonitoredStreamerWithNoStreams])
+
+## MonitoredStreamerWithNoStreams (object)
++ streamerId: 59308271 (string) - Twitch id of the streamer
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his Twitch page
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ broadcasterLanguage: en (string) - the language of the broadcaster
+
+
+
+## MonitoredStreamer (object)
++ streamerId: 59308271 (string) - Twitch id of the streamer
++ loginName: tfblade (string) - name of the user and its chat channel
++ displayName: TFblade (string) - public name showed on his Twitch page
++ profilePicture: http//url/to/pic (string) - profile picture of the streamer
++ description: Hi. I like to stream! (string) - short bio of the streamer
++ followers: 110878 (number) - number of followers of the streamer
++ broadcasterLanguage: en (string) - the language of the broadcaster
++ streams (array[BasicMonitoredStream])
+
+## MonitoredStreams (object)
++ results (array[BasicMonitoredStream])
+
+## BasicMonitoredStream (object)
++ streamId: 41051329564 (string) - Twitch id of the stream
++ title: Ranking League of Legends (string) - title of the stream
++ startedAt: 20210209T13:05:24Z (string) - UTC date of the start of the stream
++ gameName: League of Legends (string) - Name of the starting game
++ gameId: 21779 (string) - Twitch id of the starting game
++ thumbnail: http//url/to/pic (string) - thumbnail of the stream
+
+## PostNewMonitoredStreamer (object)
++ twitchId: 59308271 (string) - Twitch id of the streamer
++ twitchName: Scarra (string) - name of the streamer on Twitch
++ twitterId: scarra (string) - unique screen_name of the streamer on Twitter
+
+## PostNewFavouriteStreamer (object)
++ g_token: asdi2139so0 (string) - Google auth token
++ twitchId: 59308271 (string) - Twitch id of the streamer
++ twitterId: scarra (string) - unique screen_name of the streamer on Twitter
+
+
+## BasicMonitoredStreamWithTunits (object)
++ streamId: 41051329564 (string) - Twitch id of the stream
++ title: Ranking League of Legends (string) - title of the stream
++ startedAt: 20210209T13:05:24Z (string) - UTC date of the start of the stream
++ gameName: League of Legends (string) - Name of the starting game
++ gameId: 21779 (string) - Twitch id of the starting game
++ thumbnail: http//url/to/pic (string) - thumbnail of the stream
++ msDuration: 22917168 (number) - duration of the stream in ms
++ duration: 06:21:57 (string) - human readable duration of the stream
++ averageViewers: 5257 (number) - average viewers of the stream
++ totalNewFollowers: 498 (number) - number of new followers gainded by the stream
++ tunits (array[StreamTunit])
+
+## StreamTunit (object)
++ title: Ranking League of Legends (string) - title of the stream at the moment of the periodic check
++ followers: 110878 (number) - number of followers of the streamer at the moment of the periodic check
++ viewers: 10023 (number) - number of viewers of the stream at the moment of the periodic check
++ gameName: League of Legends (string) - Name of the starting game
++ gameId: 21779 (string) - Twitch id of the starting game
++ createdAt: 20210209T13:05:24Z (string) - UTC date of the check
++ msDuration: 22917168 (number) - timestamp in ms UTC
++ newFollowers: 11 (number) - difference in followers compared to the previous tunit
+
+## GameTunit (object)
++ gameName: Teamfight Tactics (string) - name of the game
++ start: 20210211T00:59:04.000Z (string) - start of the game session
++ end: 20210211T06:31:01.330Z (string) - end of the game session
++ msTunitLength: 19917330 (number) - milliseconds duration of the gameTunit
++ tunitLength: 05:31:57 (string) - human readable duration of the gameTunit
+
+
+## ChatTunit (object)
++ topWords (array[TopWord])
++ createdAt: 20210209T13:05:24Z (string) - UTC date of the chat analysis
+
+## TopWord (object)
++ word: Pog (string) - one of the most used words in the stream for a limited number of messages \(between 3000 and 9000\)
++ count: 123 (number) - the number of times the word has been used
+
+## Subscription (object)
++ user: luigi123 (string) - The username of the new subscriber
++ months: 4 (number) - The number of months of the subscription
++ msg: hello!! (string) - The message included in the subscription - optional
++ createdAt: 20210209T13:05:24Z (string) - UTC date of the subscription
+
+## Raid (object)
++ user: luigi123 (string) - The username of the raider
++ createdAt: 20210209T13:05:24Z (string) - UTC date of the raid
+
+## PostMonitoredResponseSuccess1 (object)
++ SUCCESS: New twitch and twitter account added to be followed (string)
+
+## PostMonitoredResponseSuccess2 (object)
++ SUCCESS: We are already monitoring this profile (string)
+
+## PostMonitoredResponseFail (object)
++ ERROR: I'm sorry but either the twitch or the twitter account is already monitored with someone else (string)
