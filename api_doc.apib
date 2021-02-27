@@ -1,11 +1,11 @@
 FORMAT: 1A
 HOST: https://epsilon.mangolytica.tk/
 
-# delta-mangolytica
+# epsilon-mangolytica
 
 REST API for obtaining data about the performance of streamers on the Twitch and Twitter platform
 
-## Search a streamer on Twitch  [/search?query={query}]
+## Search for a streamer [/search?query={query}]
 Search for a name on Twitch, Twitter and our platform
 
 + Parameters
@@ -27,6 +27,14 @@ The response will contain a list of the trending streamers' basic info
 + Response 200 (application/json)
     + Attributes (TrendingStreamers)
 
+## Fetch monitored streamers [/monitored]
+Retrieve a list of monitored streamers
+
+### List trending streamers [GET]
+The response will contain a list of all monitored streamers' basic info. The data may be incomplete
+
++ Response 200 (application/json)
+    + Attributes (MonitoredStreamers)
 
 ## Retrieve Monitored Streamer [/users/{screen_name}]
 Get basic information about the monitored streamer
@@ -47,7 +55,7 @@ Get more details about a streamer activity on Twitch and Twitter
 + Parameters
     + screen_name (string, required) - unique screen name of the user on Twitter
 
-### List monitored streamers data [GET]
+### Get insights about monitored streamers [GET]
 The response will contain many different stats regarding the streamers' usage of Twitch and Twitter
 
 + Response 200 (application/json)
@@ -111,9 +119,17 @@ Calling this endpoint in order to start monitoring a new streamer activity on Tw
 ## TrendingStreamers (object)
 + data (array[TrendingStreamer])
 
+## MonitoredStreamers (object)
++ data (array[MoitoredStreamerObj])
+
 ## TrendingStreamer (object)
 + twitchInfo (TwitchInfoMonitoredSearchResult)
 + twitterInfo (TwitterResult)
+
+## MoitoredStreamerObj (object)
++ twitchInfo (TwitchInfoMonitoredSearchResult)
++ twitterInfo (TwitterResult)
++ enabled: true (boolean) - true if there's enough data about the streamer
 
 ## MonitoredSearchResults (object)
 + twitchInfo (TwitchInfoMonitoredSearchResult)
@@ -297,8 +313,6 @@ Calling this endpoint in order to start monitoring a new streamer activity on Tw
 
 
 
-## MonitoredStreamers (object)
-+ results (array[MonitoredStreamerWithNoStreams])
 
 ## MonitoredStreamerWithNoStreams (object)
 + streamerId: 59308271 (string) - Twitch id of the streamer

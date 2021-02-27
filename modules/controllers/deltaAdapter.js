@@ -344,6 +344,66 @@ const getTrendingStreamers = async function () {
   
 }
 
+const getMonitoredStreamers = async function () {
+
+  try{
+    const resp = await axios.get(`${process.env.API_ENDPOINT}/monitored`);
+    let data = resp.data;
+
+    let results = await Promise.all(data.monitored.map(async (streamer) => {
+      try {
+        const info = await axios.get(`${process.env.API_ENDPOINT}/${streamer.id_twitter}/info`)
+        if(info.data.twitch_info){
+          return {
+            twitchInfo: {
+              displayName: info.data.twitch_info.displayName,
+              loginName: info.data.twitch_info.loginName,
+              followers: info.data.twitch_info.followers,
+              description: info.data.twitch_info.description,
+              profilePicture: info.data.twitch_info.profilePicture
+            },
+            twitterInfo: {
+              loginName: info.data.twitter_info.screen_name,
+              description: info.data.twitter_info.description,
+              followers: info.data.twitter_info.followers_count,
+              verified: info.data.twitter_info.verified
+            },
+            enabled: (info.data.twitch_info && info.data.twitch_info.streams && info.data.twitch_info.streams.length > 2)
+          };
+        }else if(info.data.twitch_info){
+          return {
+            twitchInfo: {
+              displayName: `"-[${info.data.twitter_info.screen_name}]-"`,
+              loginName: `"-[${info.data.twitter_info.screen_name}-]"`,
+              followers: 0,
+              description: "__",
+              profilePicture: "https://visualpharm.com/assets/873/Nothing%20Found-595b40b65ba036ed117d20ae.svg"
+            },
+            twitterInfo: {
+              loginName: info.data.twitter_info.screen_name,
+              description: info.data.twitter_info.description,
+              followers: info.data.twitter_info.followers_count,
+              verified: info.data.twitter_info.verified
+            },
+            enabled: false
+          }
+        }
+
+      } catch (error) {
+        throw error
+      }
+    }));
+
+    return results.filter((res) => res !== null && res !== undefined);
+
+  }catch (err){
+    console.log(err);
+    err.name = 400;
+    throw err;
+  }
+  
+}
+
 const getFavorites = async function (googleToken) {
 
   if(!googleToken){
@@ -438,6 +498,7 @@ exports.userInfo = userInfo;
 exports.userInsights = userInsights;
 exports.streamData = streamData;
 exports.getTrendingStreamers = getTrendingStreamers;
+exports.getMonitoredStreamers = getMonitoredStreamers;
 exports.getFavorites = getFavorites;
 exports.postFavorites = postFavorites;
 exports.startMonitoring = startMonitoring;

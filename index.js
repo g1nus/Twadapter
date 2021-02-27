@@ -101,6 +101,17 @@ router.get('/favorites', async (req, res, next) => {
   }
 })
 
+router.get('/monitored', async (req, res, next) => {
+  try{
+    let resp = await deltaAdapt.getMonitoredStreamers();
+    res.json(resp);
+
+  }catch (err){
+    err.name = 400;
+    return next(err);
+  }
+})
+
 router.post('/favorites', async (req, res, next) => {
   try{
     let resp = await deltaAdapt.postFavorites(req.body.g_token, req.body.twitterId, req.body.twitchId);
