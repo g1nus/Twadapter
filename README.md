@@ -1,6 +1,6 @@
 # Twadapter
 
-This express app will connect to an external API documented [here]() in order to process its data and make it more *"JSON friendly"*. 
+This express app will connect to an external API documented [here](https://deltamangolytica.docs.apiary.io/) in order to process its data and make it more *"JSON friendly"*. 
 
 ## Installation and setup
 
